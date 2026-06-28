@@ -72,13 +72,3 @@ class SatelliteDataFetcher:
         
         print(f"[SUCCESS] Loaded {len(satellites)} active satellites into memory.")
         return satellites
-            
-
-if __name__ == "__main__":
-    fetcher = SatelliteDataFetcher()
-    active_sats = fetcher.fetch_active_satellites()
-    
-    # Print out the first 5 satellites to prove it works
-    print("\n--- Sample Satellites Loaded ---")
-    for sat in active_sats[:5]:
-        print(f"Name: {sat.name} | NORAD ID: {sat.model.satnum}")
