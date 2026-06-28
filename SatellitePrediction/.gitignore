@@ -1,0 +1,20 @@
+Plaintext
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments (If you are using one)
+venv/
+env/
+.venv/
+
+# Secret Keys & Configs (Crucial if you ever add API keys!)
+.env
+
+# Skyfield & Aerospace Data Files
+# These get downloaded automatically by your code, so no need to upload them!
+*.csv
+*.bsp
+*.dat
+*.txt
