@@ -63,6 +63,15 @@
             opacity: 0.8
         }).addTo(map);
 
+        // Create a glowing footprint circle
+        var footprint = L.circle([0,0], {
+            color: '#3498db',     // Blue
+            fillColor: '#3498db',
+            fillOpacity: 0.15,    // Highly transparent
+            weight: 1,            // Thin border
+            radius: 0             // Will be calculated dynamically
+        }).addTo(map);
+
         // Fetch all satellite names to populate the scrollable list
         fetch('/api/satellites')
             .then(response => response.json())
@@ -93,6 +102,16 @@
                     if (data.path) {
                         orbitPath.setLatLngs(data.path);
                     }
+
+                    // Calculate and update the footprint circle
+                    var earthRadiusKm = 6371.0;
+                    var altKm = data.altitude_km;
+
+                    var centralAngle = Math.acos(earthRadiusKm / (earthRadiusKm + altKm));
+                    var footprintRadiusKm = earthRadiusKm * centralAngle;
+
+                    footprint.setLatLng([lat, lon]);
+                    footprint.setRadius(footprintRadiusKm * 1000); // Leaflet requires meters
                    
 
                     // Update Sidebar Text
