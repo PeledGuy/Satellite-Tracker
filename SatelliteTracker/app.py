@@ -29,9 +29,9 @@ def get_telemetry():
     if not target_sat:
         return jsonify({"error": f"Could not find a satellite matching {target_name}"}), 404
     
-    # Giv'atayim coordinates
-    my_lat = 32.0722
-    my_lon = 34.8089
+    # Get coordinates from browser, defaults to Tel Aviv
+    my_lat = float(request.args.get('lat', 32.0853))
+    my_lon = float(request.args.get('lon', 34.7818))
 
     # Get the data
     loc = engine.get_location_by_time(target_sat)

@@ -34,7 +34,15 @@
 
         <h2>Ground Station</h2>
         <div class="stat-box">
-            <strong>Location:</strong> Giv'atayim, Israel<br><br>
+            <strong>Observer Location:</strong><br>
+            <div style="display: flex; gap: 5px; margin-top: 5px; margin-bottom: 5px;">
+                <input type="text" id="city-search" placeholder="e.g. Tokyo, London, Paris..." style="flex: 1;">
+                <button id="search-btn" style="background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; font-weight: bold;">Search</button>
+            </div>
+            <div style="font-size: 0.85em; color: #bdc3c7; margin-bottom: 15px;">
+                Tracking from: <span id="detected-loc" style="color: #f1c40f;">Tel Aviv</span>
+            </div>
+            
             <strong>Status:</strong> <span id="status" class="hidden">Loading...</span><br><br>
             <strong>Next Pass:</strong> <br><span id="next-pass" style="color: #bdc3c7;">--</span>
         </div>
@@ -72,6 +80,9 @@
             radius: 0             // Will be calculated dynamically
         }).addTo(map);
 
+        var groundLat = 32.0853
+        var groundLon = 34.7818
+
         // Fetch all satellite names to populate the scrollable list
         fetch('/api/satellites')
             .then(response => response.json())
@@ -85,11 +96,14 @@
             });
 
         // Fetch Data from API
+        // Fetch Data from API
         function fetchTelemetry() {
             var selectedSat = document.getElementById('sat-selector').value;
             if (!selectedSat) return;
 
-            fetch('/api/telemetry?name=' + encodeURIComponent(selectedSat))
+            var url = '/api/telemetry?name=' + encodeURIComponent(selectedSat) + '&lat=' + groundLat + '&lon=' + groundLon;
+            
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) return;
@@ -113,7 +127,6 @@
                     footprint.setLatLng([lat, lon]);
                     footprint.setRadius(footprintRadiusKm * 1000); // Leaflet requires meters
                    
-
                     // Update Sidebar Text
                     document.getElementById('official-name').innerText = data.name;
                     document.getElementById('lat').innerText = lat.toFixed(4);
@@ -138,6 +151,48 @@
                 })
                 .catch(err => console.error("Error fetching data:", err));
         }
+
+        function searchLocation() {
+            var query = document.getElementById('city-search').value;
+            if (!query) return;
+
+            var detectedEl = document.getElementById('detected-loc');
+            detectedEl.innerText = "Searching...";
+
+            // Call OpenStreetMap's geocoding API
+            fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0){
+                        // Grab the coordinates
+                        groundLat = parseFloat(data[0].lat);
+                        groundLon = parseFloat(data[0].lon);
+
+                        // Show the city name
+                        var shortName = data[0].display_name.split(',')[0];
+                        detectedEl.innerText = shortName + " (" + groundLat.toFixed(1) + "°, " + groundLon.toFixed(1) + "°)";
+
+                        fetchTelemetry();
+                    }
+                    else {
+                        detectedEl.innerText = "Location not found";
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    detectedEl.innerText = "Search failed.";
+                });
+        }
+
+        // Run the search when the user clicks the button
+        document.getElementById('search-btn').addEventListener('click', searchLocation);
+
+        // Also run the search if they press "Enter" on their keyboard
+        document.getElementById('city-search').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchLocation();
+            }
+        });
 
         // Update every 2 seconds)
         setInterval(fetchTelemetry, 2000);
