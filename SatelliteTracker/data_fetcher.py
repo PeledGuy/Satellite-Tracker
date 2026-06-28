@@ -1,6 +1,11 @@
 import os
 import csv
 import urllib.request
+
+opener = urllib.request.build_opener()
+opener.addheaders = [('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')]
+urllib.request.install_opener(opener)
+
 from skyfield.api import load, Loader, EarthSatellite
 
 class SatelliteDataFetcher:
@@ -21,8 +26,9 @@ class SatelliteDataFetcher:
         # Initialize Skyfield's native loader pointing to our directory
         skyfield_loader = Loader(self.data_dir)
 
+        # Updated to Chrome Browser Header
         headers = {
-                    'User-Agent': 'TAU-Student-SatelliteTracker/1.0',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                     'Accept': 'text/csv, application/csv, */*'
                 }
 
