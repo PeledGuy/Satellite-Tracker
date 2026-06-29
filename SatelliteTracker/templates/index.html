@@ -53,6 +53,10 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
+        // Default Starting Coordinates
+        var groundLat = 32.0853;
+        var groundLon = 34.7818;
+
         // Initialize the Map
         var map = L.map('map').setView([0, 0], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -61,8 +65,44 @@
             maxZoom: 20
         }).addTo(map);
 
+        // Satellite marker
+        var satelliteIcon = L.divIcon({
+            html: `
+                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="#3498db" stroke="#1e1e1e" stroke-width="1" style="transform: rotate(45deg); filter: drop-shadow(0px 0px 4px rgba(52, 152, 219, 0.6));">
+                    <rect x="1" y="10" width="6" height="4" rx="0.5"/>
+                    <line x1="3" y1="10" x2="3" y2="14" stroke="#1e1e1e" stroke-width="0.5"/>
+                    <line x1="5" y1="10" x2="5" y2="14" stroke="#1e1e1e" stroke-width="0.5"/>
+                    <rect x="17" y="10" width="6" height="4" rx="0.5"/>
+                    <line x1="19" y1="10" x2="19" y2="14" stroke="#1e1e1e" stroke-width="0.5"/>
+                    <line x1="21" y1="10" x2="21" y2="14" stroke="#1e1e1e" stroke-width="0.5"/>
+                    <line x1="7" y1="12" x2="17" y2="12" stroke="#3498db" stroke-width="2"/>
+                    <circle cx="12" cy="12" r="3.5" fill="#ecf0f1"/>
+                    <line x1="12" y1="14" x2="12" y2="18" stroke="#ecf0f1" stroke-width="1.5"/>
+                    <path d="M9 18c1 1.5 5 1.5 6 0" fill="none" stroke="#3498db" stroke-width="1.5"/>
+                </svg>
+            `,
+            className: 'custom-sat-marker',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        // Red pinpoint for ground station
+        var redPinIcon = L.divIcon({
+            html: `
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#e74c3c" stroke="#1e1e1e" stroke-width="1" style="filter: drop-shadow(0px 0px 4px rgba(231, 76, 60, 0.6));">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            `,
+            className: 'custom-observer-marker',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32] // Anchors the bottom tip of the pin onto the coordinates
+        });
+
         // Add a marker for the satellite
-        var marker = L.marker([0, 0]).addTo(map);
+        var marker = L.marker([0, 0], {icon: satelliteIcon}).addTo(map);
+
+        // Add a marker for the Ground Station
+        var observerMarker = L.marker([groundLat, groundLon], {icon: redPinIcon}).addTo(map);
 
         // Create a glowing dotted line for the orbital path
         var orbitPath = L.polyline([], {
@@ -169,6 +209,8 @@
                         groundLat = parseFloat(data[0].lat);
                         groundLon = parseFloat(data[0].lon);
 
+                        observerMarker.setLatLng([groundLat, groundLon]);
+
                         // Show the city name
                         var shortName = data[0].display_name.split(',')[0];
                         detectedEl.innerText = shortName + " (" + groundLat.toFixed(1) + "°, " + groundLon.toFixed(1) + "°)";
@@ -196,6 +238,8 @@
                     function(position) {
                         groundLat = position.coords.latitude;
                         groundLon = position.coords.longitude;
+
+                        observerMarker.setLatLng([groundLat, groundLon]);
 
                         // Update the sidebar text with exact coordinates
                         detectedEl.innerText = "GPS Location (" + groundLat.toFixed(2) + "°, " + groundLon.toFixed(2) + "°)";
