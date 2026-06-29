@@ -1,6 +1,7 @@
 import time
 from datetime import datetime, timezone, timedelta
 from skyfield.api import wgs84
+from math_engine import ViewAngleCalculator
 from data_fetcher import SatelliteDataFetcher
 import math
 
@@ -64,18 +65,26 @@ class OrbitEngine:
         ground_station = wgs84.latlon(observer_lat, observer_lon)
         t_now = self.ts.now()
 
-        # Checking where the satellite is right now
-        difference = satellite - ground_station
-        topocentric = difference.at(t_now)
-        elevation, azimuth, distance = topocentric.altaz()
+       # Checking where the satellite is right now
+        geocentric = satellite.at(t_now)
+        subpoint = wgs84.subpoint(geocentric)
+
+        # Custom math engine
+        elevation_deg, azimuth_deg, distance_km = ViewAngleCalculator.get_look_angles(
+            sat_lat=subpoint.latitude.degrees,
+            sat_lon=subpoint.longitude.degrees,
+            sat_alt_km=subpoint.elevation.km,
+            obs_lat=observer_lat,
+            obs_lon=observer_lon
+        )
 
         # Return if high enough to be visible
-        if elevation.degrees >= min_angle:
+        if elevation_deg >= min_angle:
             return {
                 "visible_now": True,
-                "current_elevation": round(elevation.degrees, 2),
-                "current_azimuth": round(azimuth.degrees, 2),
-                "distance_km": round(distance.km, 2),
+                "current_elevation": round(elevation_deg, 2),
+                "current_azimuth": round(azimuth_deg, 2),
+                "distance_km": round(distance_km, 2),
                 "next_pass_utc": t_now.utc_datetime()
             }
         
@@ -91,6 +100,6 @@ class OrbitEngine:
 
         return {
             "visible_now": False,
-            "current_elevation": round(elevation.degrees, 2),
+            "current_elevation": round(elevation_deg, 2),
             "next_pass_utc": next_pass_time
         }
