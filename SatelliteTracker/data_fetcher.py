@@ -72,3 +72,10 @@ class SatelliteDataFetcher:
         
         print(f"[SUCCESS] Loaded {len(satellites)} active satellites into memory.")
         return satellites
+    
+
+if __name__ == "__main__":
+    print("[BOT] Waking up to fetch daily satellite data...")
+    fetcher = SatelliteDataFetcher()
+    fetcher.fetch_active_satellites()
+    print("[BOT] Mission accomplished. Data saved!")
