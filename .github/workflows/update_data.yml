@@ -1,1 +1,37 @@
+name: Daily Satellite Data Update
 
+on:
+  schedule:
+    - cron: '0 3 * * *' # Runs automatically every day at midnight Tel Aviv time
+  workflow_dispatch:
+
+jobs:
+  download-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+        # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.14'
+
+        # Install Skyfield
+      - name: Install Skyfield
+        run: pip install skyfield
+
+        # Run fetcher script to get the csv file
+      - name: Download latest satellite data
+        run: python data_fetcher.py
+
+        # 5. Save the new files and push them back to repo
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/
+          git commit -m "Auto-updated satellite data" || exit 0
+          git push
