@@ -12,7 +12,5 @@ env/
 .env
 
 # Skyfield & Aerospace Data Files
-# These get downloaded automatically by your code, so no need to upload them!
-*.csv
 *.bsp
 *.dat
